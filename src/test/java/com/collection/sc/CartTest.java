@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.NoSuchElementException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CartTest {
     @Test
@@ -13,9 +14,9 @@ public class CartTest {
         Cart cart = new Cart();
         Product product = products.getProductById(1);
         cart.addProductToCart(product, 2);
-        assertEquals(1, cart.getCartItems().size());
+        assertEquals(1, cart.getItems().size());
         assertEquals(8, product.getStock());
-        assertEquals("Rice", cart.getCartItems().get(0).getProduct().getName());
+        assertEquals("Rice", cart.getItems().get(0).getProductName());
         cart.display();
     }
 
@@ -24,17 +25,22 @@ public class CartTest {
         Products products = new Products();
         Cart cart = new Cart();
         products.getProducts().forEach(product -> cart.addProductToCart(product, 2));
-        cart.removeProductFromCart(2);
-        assertEquals(20, products.getProductById(2).getStock());
-        assertEquals(3, cart.getCartItems().size());
+        Product product = products.getProductById(1);
+        cart.removeProductFromCart(product);
+        assertEquals(10, product.getStock());
+        assertEquals(3, cart.getItems().size());
     }
 
     @Test
     public void testRemoveProductFromCartThrowsExceptions() {
+        Products products = new Products();
         Cart cart = new Cart();
         cart.display();
-        NoSuchElementException noSuchElementException =
-                assertThrows(NoSuchElementException.class, () -> cart.removeProductFromCart(5));
-        assertNotNull(noSuchElementException);
+        cart.addProductToCart(products.getProductById(1), 2);
+        cart.display();
+        Product product = products.getProductById(2);
+        NoSuchElementException thrown =
+                assertThrows(NoSuchElementException.class, () -> cart.removeProductFromCart(product));
+        assertEquals("Item not found for this product id!", thrown.getMessage());
     }
 }

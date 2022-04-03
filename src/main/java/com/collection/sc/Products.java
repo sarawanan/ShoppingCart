@@ -3,10 +3,11 @@ package com.collection.sc;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Getter
 public class Products {
-    private final List<Product> products;
+    List<Product> products;
 
     public Products() {
         products = List.of(
@@ -16,17 +17,13 @@ public class Products {
                 Product.builder().id(4).name("Bread").price(70).stock(40).build());
     }
 
-    public void display() {
-        StringBuffer sb = new StringBuffer();
-        sb.append("Products List\n");
-        products.forEach(product -> sb.append(String.format("%s : Name: %s - Price: %s - Stock: %s%n",
-                product.getId(), product.getName(), product.getPrice(), product.getStock())));
-        System.out.println(sb);
-    }
-
     public Product getProductById(int productId) {
         return products.parallelStream()
                 .filter(product -> product.getId() == productId)
-                .findFirst().orElseThrow();
+                .findFirst().orElseThrow(() -> new NoSuchElementException("Product Not Found"));
+    }
+
+    public void display() {
+        products.forEach(System.out::println);
     }
 }

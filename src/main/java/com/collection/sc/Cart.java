@@ -4,41 +4,38 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 @Getter
 public class Cart {
-    List<CartItem> cartItems;
+    List<CartItem> items;
 
     public Cart() {
-        cartItems = new ArrayList<>();
+        items = new ArrayList<>();
     }
 
     public void addProductToCart(Product product, int qty) {
-        cartItems.add(new CartItem(product, qty));
+        items.add(CartItem.builder()
+                .productId(product.getId())
+                .productName(product.getName())
+                .price(product.getPrice())
+                .qty(qty)
+                .build());
         product.setStock(product.getStock() - qty);
     }
 
-    public void removeProductFromCart(int productId) {
-        CartItem cartItem = getCartItemByProductId(productId);
-        Product product = cartItem.getProduct();
+    public void removeProductFromCart(Product product) {
+        CartItem cartItem = items.parallelStream()
+                .filter(item -> item.getProductId() == product.getId()).findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Item not found for this product id!"));
         product.setStock(product.getStock() + cartItem.getQty());
-        cartItems.remove(cartItem);
-
-    }
-
-    private CartItem getCartItemByProductId(int productId) {
-        return Optional.of(cartItems.stream()
-                .filter(cartItem -> cartItem.getProduct().getId() == productId)
-                .findFirst()).get().orElseThrow();
+        items.remove(cartItem);
     }
 
     public void display() {
-        if (cartItems.size() > 0) {
-            System.out.println("Shopping Cart\n");
-            cartItems.forEach(CartItem::display);
-            double total = cartItems.stream().mapToDouble(CartItem::getPrice).sum();
-            System.out.println("Total Price: " + total);
+        if (items.size() > 0) {
+            items.forEach(System.out::println);
+            System.out.println("Total Price: " + items.stream().mapToDouble(CartItem::getPrice).sum());
         } else {
             System.out.println("No items in cart");
         }
